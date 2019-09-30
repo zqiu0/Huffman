@@ -155,19 +155,42 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
 
     @Override
     public int getColor(int x, int y) {
-        throw new UnsupportedOperationException("TODO: implement");
+        if (x < 0 || y < 0 || x > size || y > size) {
+            throw new IllegalArgumentException();
+        }
+        if (isLeaf()) {
+            return this.color;
+        }
+        QuadName location = findQuadrant(x, y);
+        QuadTreeNode childNode = getQuadrant(location);
+        while (!childNode.isLeaf()) {
+            location = findQuadrant(x, y);
+            childNode = getQuadrant(location);
+        }
+        return childNode.getColor(x, y);
     }
     
-    QuadName findQuadrant(int row, int col, QuadTreeNode root) {
-        int side = root.getDimension();
-        if (row < side / 2 && col < side / 2) {
+    /**
+     * Finds the quadrant the given coordinate is in
+     * 
+     * @param row row value of coordinate
+     * @param col col value of coordinate
+     * @return QuadName of quadrant
+     */
+    QuadName findQuadrant(int row, int col) {
+        if (row < 0 || col < 0 || row > size || col > size) {
+            throw new IllegalArgumentException();
+        }
+        if (row < size / 2 && col < size / 2) {
             return QuadName.TOP_LEFT;
-        } else if (row < side / 2 && col >= side / 2) {
+        } else if (row < size / 2 && col >= size / 2) {
             return QuadName.TOP_RIGHT;
-        } else if (row >= side / 2 && col < side / 2) {
+        } else if (row >= size / 2 && col < size / 2) {
             return QuadName.BOTTOM_LEFT;
-        } else if (row >= side / 2 && col >= side / 2) {
+        } else if (row >= size / 2 && col >= size / 2) {
             return QuadName.BOTTOM_RIGHT;
+        } else {
+            throw new IllegalArgumentException();
         }
     }
 
