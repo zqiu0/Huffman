@@ -158,7 +158,18 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
         throw new UnsupportedOperationException("TODO: implement");
     }
     
-    //QuadName findQuadrant(int x, int y, )
+    QuadName findQuadrant(int row, int col, QuadTreeNode root) {
+        int side = root.getDimension();
+        if (row < side / 2 && col < side / 2) {
+            return QuadName.TOP_LEFT;
+        } else if (row < side / 2 && col >= side / 2) {
+            return QuadName.TOP_RIGHT;
+        } else if (row >= side / 2 && col < side / 2) {
+            return QuadName.BOTTOM_LEFT;
+        } else if (row >= side / 2 && col >= side / 2) {
+            return QuadName.BOTTOM_RIGHT;
+        }
+    }
 
     @Override
     public void setColor(int x, int y, int c) {
