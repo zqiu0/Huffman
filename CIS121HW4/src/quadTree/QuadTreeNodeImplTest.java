@@ -60,12 +60,10 @@ public class QuadTreeNodeImplTest {
             {1, 0},
         };
         QuadTreeNode q = new QuadTreeNodeImpl(2);
-        QuadTreeNode q2 = new QuadTreeNodeImpl(2);
         ((QuadTreeNodeImpl) q).getQuadFromArray(arr, 0, 0, 2);
         QuadTreeNode quad = q.getQuadrant(QuadTreeNode.QuadName.TOP_LEFT);
         assertEquals(1, quad.getDimension());
         assertEquals(2, ((QuadTreeNodeImpl) quad).getLeafColor());
-        assertNull(q2.getQuadrant(QuadTreeNode.QuadName.BOTTOM_LEFT));
     }
     
     @Test
@@ -83,10 +81,44 @@ public class QuadTreeNodeImplTest {
     @Test
     public void testSetQuad() {
         QuadTreeNode root = new QuadTreeNodeImpl(2);
-        QuadTreeNode root2 = new QuadTreeNodeImpl(2);
         ((QuadTreeNodeImpl) root).setQuad(new QuadTreeNodeImpl(1, 1), QuadTreeNode.QuadName.BOTTOM_LEFT);
         assertEquals(1, ((QuadTreeNodeImpl) root.getQuadrant(QuadTreeNode.QuadName.BOTTOM_LEFT)).getLeafColor());
-        assertNull(root2.getQuadrant(QuadTreeNode.QuadName.BOTTOM_LEFT));
+    }
+    
+    @Test
+    public void testFindQuadrant2By2() {
+        int[][] arr = new int[][]{
+            {0, 1},
+            {1, 0}, 
+        };
+        
+        QuadTreeNode q = new QuadTreeNodeImpl(arr.length);
+        ((QuadTreeNodeImpl) q).setQuad(new QuadTreeNodeImpl(0, 1), QuadTreeNode.QuadName.TOP_LEFT);
+        ((QuadTreeNodeImpl) q).setQuad(new QuadTreeNodeImpl(1, 1), QuadTreeNode.QuadName.TOP_RIGHT);
+        ((QuadTreeNodeImpl) q).setQuad(new QuadTreeNodeImpl(1, 1), QuadTreeNode.QuadName.BOTTOM_LEFT);
+        ((QuadTreeNodeImpl) q).setQuad(new QuadTreeNodeImpl(0, 1), QuadTreeNode.QuadName.BOTTOM_RIGHT);
+        
+        assertEquals(QuadTreeNode.QuadName.TOP_LEFT, ((QuadTreeNodeImpl) q).findQuadrant(0, 0));
+        assertEquals(QuadTreeNode.QuadName.TOP_RIGHT, ((QuadTreeNodeImpl) q).findQuadrant(0, 1));
+        assertEquals(QuadTreeNode.QuadName.BOTTOM_LEFT, ((QuadTreeNodeImpl) q).findQuadrant(1, 0));
+        assertEquals(QuadTreeNode.QuadName.BOTTOM_RIGHT, ((QuadTreeNodeImpl) q).findQuadrant(1, 1));
+    }
+    
+    @Test
+    public void testGetColor2By2() {
+        int[][] arr = new int[][]{
+            {0, 1},
+            {1, 0}, 
+        };
+        
+        QuadTreeNode q = new QuadTreeNodeImpl(arr.length);
+        ((QuadTreeNodeImpl) q).setQuad(new QuadTreeNodeImpl(0, 1), QuadTreeNode.QuadName.TOP_LEFT);
+        ((QuadTreeNodeImpl) q).setQuad(new QuadTreeNodeImpl(1, 1), QuadTreeNode.QuadName.TOP_RIGHT);
+        ((QuadTreeNodeImpl) q).setQuad(new QuadTreeNodeImpl(1, 1), QuadTreeNode.QuadName.BOTTOM_LEFT);
+        ((QuadTreeNodeImpl) q).setQuad(new QuadTreeNodeImpl(0, 1), QuadTreeNode.QuadName.BOTTOM_RIGHT);
+        
+        assertFalse(q.isLeaf());
+        assertEquals(1, q.getColor(1, 0));
     }
 }
 

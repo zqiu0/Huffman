@@ -163,11 +163,9 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
         }
         QuadName location = findQuadrant(x, y);
         QuadTreeNode childNode = getQuadrant(location);
-        while (!childNode.isLeaf()) {
-            location = findQuadrant(x, y);
-            childNode = getQuadrant(location);
-        }
-        return childNode.getColor(x, y);
+        int newX = convertX(x, location);
+        int newY = convertY(y, location);
+        return childNode.getColor(newX, newY);
     }
     
     /**
@@ -192,6 +190,39 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
         } else {
             throw new IllegalArgumentException();
         }
+    }
+    /**
+     * Converts y coordinate to a corresponding y coordinate relative to the given quadrant
+     * 
+     * @param y original y (col) value to be converted
+     * @param quadrant new quadrant
+     * @return converted y coordinate
+     */
+    int convertY(int y, QuadName quadrant) {
+        switch (quadrant) {
+            case TOP_LEFT: return y;
+            case TOP_RIGHT: return y - size / 2;
+            case BOTTOM_LEFT: return y;
+            case BOTTOM_RIGHT: return y - size / 2;
+        }
+        throw new IllegalArgumentException();
+    }
+    
+    /**
+     * Converts x coordinate to a corresponding x relative to given quadrant
+     * 
+     * @param x original x (row) value
+     * @param quadrant new quadrant
+     * @return converted x coordinate
+     */
+    int convertX(int x, QuadName quadrant) {
+        switch (quadrant) {
+            case TOP_LEFT: return x;
+            case TOP_RIGHT: return x;
+            case BOTTOM_LEFT: return x - size / 2;
+            case BOTTOM_RIGHT: return x - size / 2;
+        }
+        throw new IllegalArgumentException();
     }
 
     @Override
