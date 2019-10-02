@@ -3,7 +3,7 @@ package quadTree;
 
 public class QuadTreeNodeImpl implements QuadTreeNode {
     private int color;
-    private int size; //side length of image
+    private int dimension; //side length of image
     private boolean hasColor; //whether the node has a color value
     private QuadTreeNode upperLeft;
     private QuadTreeNode upperRight;
@@ -11,9 +11,9 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
     private QuadTreeNode lowerRight;
     
     /** leaf */
-    QuadTreeNodeImpl(int color, int size) {
+    QuadTreeNodeImpl(int color, int dimension) {
         this.color = color;
-        this.size = size;
+        this.dimension = dimension;
         hasColor = true;
         /*upperLeft = null;
         upperRight = null;
@@ -22,8 +22,8 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
     }
     
     /** non-leaf */
-    QuadTreeNodeImpl(int size) {
-        this.size = size;
+    QuadTreeNodeImpl(int dimension) {
+        this.dimension = dimension;
         hasColor = false;
     }
     
@@ -172,7 +172,7 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
 
     @Override
     public int getColor(int x, int y) {
-        if (x < 0 || y < 0 || x > size || y > size) {
+        if (x < 0 || y < 0 || x > dimension || y > dimension) {
             throw new IllegalArgumentException();
         }
         if (isLeaf()) {
@@ -193,16 +193,16 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
      * @return QuadName of quadrant
      */
     QuadName findQuadrant(int row, int col) {
-        if (row < 0 || col < 0 || row > size || col > size) {
+        if (row < 0 || col < 0 || row > dimension || col > dimension) {
             throw new IllegalArgumentException();
         }
-        if (row < size / 2 && col < size / 2) {
+        if (row < dimension / 2 && col < dimension / 2) {
             return QuadName.TOP_LEFT;
-        } else if (row < size / 2 && col >= size / 2) {
+        } else if (row < dimension / 2 && col >= dimension / 2) {
             return QuadName.TOP_RIGHT;
-        } else if (row >= size / 2 && col < size / 2) {
+        } else if (row >= dimension / 2 && col < dimension / 2) {
             return QuadName.BOTTOM_LEFT;
-        } else if (row >= size / 2 && col >= size / 2) {
+        } else if (row >= dimension / 2 && col >= dimension / 2) {
             return QuadName.BOTTOM_RIGHT;
         } else {
             throw new IllegalArgumentException();
@@ -218,9 +218,9 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
     int convertY(int y, QuadName quadrant) {
         switch (quadrant) {
             case TOP_LEFT: return y;
-            case TOP_RIGHT: return y - size / 2;
+            case TOP_RIGHT: return y - dimension / 2;
             case BOTTOM_LEFT: return y;
-            case BOTTOM_RIGHT: return y - size / 2;
+            case BOTTOM_RIGHT: return y - dimension / 2;
         }
         throw new IllegalArgumentException();
     }
@@ -236,8 +236,8 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
         switch (quadrant) {
             case TOP_LEFT: return x;
             case TOP_RIGHT: return x;
-            case BOTTOM_LEFT: return x - size / 2;
-            case BOTTOM_RIGHT: return x - size / 2;
+            case BOTTOM_LEFT: return x - dimension / 2;
+            case BOTTOM_RIGHT: return x - dimension / 2;
         }
         throw new IllegalArgumentException();
     }
@@ -260,22 +260,22 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
 
     @Override
     public int getDimension() {
-        return size;
+        return dimension;
     }
 
     @Override
     public int getSize() {
-        int size = 1;
+        int num = 1;
         if (upperLeft != null) {
-            size += upperLeft.getSize();
+            num += upperLeft.getSize();
         } else if (upperRight != null) {
-            size += upperRight.getSize();
+            num += upperRight.getSize();
         } else if (lowerLeft != null) {
-            size += lowerLeft.getSize();
+            num += lowerLeft.getSize();
         } else if (lowerRight != null) {
-            size += lowerRight.getSize();
+            num += lowerRight.getSize();
         }
-        return size;
+        return num;
     }
 
     @Override
