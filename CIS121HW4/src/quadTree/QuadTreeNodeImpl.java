@@ -50,11 +50,13 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
         if (image.length == 1) {
             return new QuadTreeNodeImpl(image[0][0], 1);
         } else {
-            QuadTreeNode root = new QuadTreeNodeImpl(image.length);
-            
+            QuadTreeNodeImpl root = new QuadTreeNodeImpl(image.length);
+            root.setQuad(getQuadFromArray(image, 0, 0, image.length / 2), QuadName.TOP_LEFT);
+            root.setQuad(getQuadFromArray(image, 0, image.length / 2, image.length / 2), QuadName.TOP_RIGHT);
+            root.setQuad(getQuadFromArray(image, image.length / 2, 0, image.length / 2), QuadName.BOTTOM_LEFT);
+            root.setQuad(getQuadFromArray(image, image.length / 2, image.length / 2, image.length / 2), QuadName.BOTTOM_RIGHT);
+            return root.mergeLeaf();
         }
-        return null;
-        
     }
     
     /** checks if an int is a power of 2 */
@@ -106,30 +108,25 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
      * @param x row coordinate of upper left coordinate of quadrant
      * @param y col coordinate of upper left coordinate of quadrant
      * @param side side size of quadrant
-     * @return QuadTreeNode representing a quadrant of image
+     * @return QuadTreeNodeImpl representing a quadrant of image
      */
-    QuadTreeNode getQuadFromArray(int[][] image, int x, int y, int side) {
+    static QuadTreeNodeImpl getQuadFromArray(int[][] image, int x, int y, int side) {
         if (side == 2) {
-            QuadTreeNode root = new QuadTreeNodeImpl(2);
-            for (int row = x; row < x + side; row++) {
-                for (int col = y; col < y + side; col++) {
-                    if (image[row][col] != image[x][y]) {
-                        setQuad(new QuadTreeNodeImpl(image[x][y], 1), QuadName.TOP_LEFT);
-                        setQuad(new QuadTreeNodeImpl(image[x + 1][y], 1), QuadName.BOTTOM_LEFT);
-                        setQuad(new QuadTreeNodeImpl(image[x][y + 1], 1), QuadName.TOP_RIGHT);
-                        setQuad(new QuadTreeNodeImpl(image[x + 1][y + 1], 1), QuadName.BOTTOM_RIGHT);
-                        return root;
-                    }
-                }
-            }
-            return new QuadTreeNodeImpl(image[x][y], 2);
+            QuadTreeNodeImpl root = new QuadTreeNodeImpl(2);
+            root.setQuad(new QuadTreeNodeImpl(image[x][y], 1), QuadName.TOP_LEFT);
+            root.setQuad(new QuadTreeNodeImpl(image[x + 1][y], 1), QuadName.BOTTOM_LEFT);
+            root.setQuad(new QuadTreeNodeImpl(image[x][y + 1], 1), QuadName.TOP_RIGHT);
+            root.setQuad(new QuadTreeNodeImpl(image[x + 1][y + 1], 1), QuadName.BOTTOM_RIGHT);
+            System.out.println("merge" + root.getQuadrant(QuadName.TOP_LEFT).getColor(0, 0));
+            return root.mergeLeaf();
+                    
         } else {
-            QuadTreeNode root = new QuadTreeNodeImpl(side);
-            setQuad(getQuadFromArray(image, x, y, side / 2), QuadName.TOP_LEFT);
-            setQuad(getQuadFromArray(image, x + side / 2, y, side / 2), QuadName.BOTTOM_LEFT);
-            setQuad(getQuadFromArray(image, x, y + side / 2, side / 2), QuadName.TOP_RIGHT);
-            setQuad(getQuadFromArray(image, x + side / 2, y + side / 2, side / 2), QuadName.BOTTOM_RIGHT);
-            return root;
+            QuadTreeNodeImpl root = new QuadTreeNodeImpl(side);
+            root.setQuad(getQuadFromArray(image, x, y, side / 2), QuadName.TOP_LEFT);
+            root.setQuad(getQuadFromArray(image, x + side / 2, y, side / 2), QuadName.BOTTOM_LEFT);
+            root.setQuad(getQuadFromArray(image, x, y + side / 2, side / 2), QuadName.TOP_RIGHT);
+            root.setQuad(getQuadFromArray(image, x + side / 2, y + side / 2, side / 2), QuadName.BOTTOM_RIGHT);
+            return root.mergeLeaf();
         }
     }
     
@@ -140,16 +137,36 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
     /**
      * Checks if the leaves of a given node needs to be merged, that is if all leaves hold same
      * color value
-     * @param root node to check if leaves need to be merged
+     * 
      * @return Single leaf node to replace original root node + four leaves
      */
-    QuadTreeNode mergeLeaf(QuadTreeNode root) {
-        if (root.getQuadrant(QuadName.TOP_LEFT).isLeaf() && 
-                root.getQuadrant(QuadName.TOP_RIGHT).isLeaf() &&
-                root.getQuadrant(QuadName.BOTTOM_LEFT).isLeaf() && 
-                root.getQuadrant(QuadName.BOTTOM_RIGHT).isLeaf()) {
-            int rgb = root.getQuadrant(QuadName.TOP_LEFT).getColor();
+    QuadTreeNodeImpl mergeLeaf() {
+        //System.out.println("merge run");
+        if (getQuadrant(QuadName.TOP_LEFT).isLeaf() && 
+                getQuadrant(QuadName.TOP_RIGHT).isLeaf() &&
+                getQuadrant(QuadName.BOTTOM_LEFT).isLeaf() && 
+                getQuadrant(QuadName.BOTTOM_RIGHT).isLeaf()) {
+            //System.out.println("out");
+            if (leafSameColor()) {
+                //System.out.println("in");
+                return new QuadTreeNodeImpl(getQuadrant(QuadName.TOP_LEFT).getColor(0, 0), 
+                        getDimension());
+                //System.out.println(q.getQuadrant(QuadName.TOP_RIGHT));
+            }
         }
+        return this;
+    }
+    
+    /**
+     * Checks if leaves of current node are all same color
+     * 
+     * @return true is leaves are same color
+     */
+    boolean leafSameColor() {
+        int rgb = getQuadrant(QuadName.TOP_LEFT).getColor(0, 0);
+        return rgb == getQuadrant(QuadName.TOP_RIGHT).getColor(0, 0) &&
+                rgb == getQuadrant(QuadName.BOTTOM_LEFT).getColor(0, 0) &&
+                rgb == getQuadrant(QuadName.BOTTOM_RIGHT).getColor(0, 0);
     }
 
 
@@ -274,5 +291,62 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
     @Override
     public double getCompressionRatio() {
         throw new UnsupportedOperationException("TODO: implement");
+    }
+    
+    /**
+     * equals method for a QuadTreeNode
+     */
+    @Override
+    public boolean equals(Object other) {
+        if (other == null || this == null) {
+            return this == other;
+        } else if (this == other) {
+            return true;
+        } else if (!(other instanceof QuadTreeNode)) {
+            return false;
+        }
+        QuadTreeNode q = (QuadTreeNode) other;
+        if (q.getSize() != this.getSize() || q.getDimension() != this.getDimension()) {
+            return false;
+        }
+        
+        if (this.isLeaf() && q.isLeaf()) {
+            return this.getColor(0, 0) == q.getColor(0, 0);
+        }
+        
+        if (upperLeft != null) {
+            if (q.getQuadrant(QuadName.TOP_LEFT) != null) {
+                return upperLeft.equals(q.getQuadrant(QuadName.TOP_LEFT));
+            } else {
+                return false;
+            }
+        }
+        
+        if (upperRight != null) {
+            if (q.getQuadrant(QuadName.TOP_RIGHT) != null) {
+                return upperRight.equals(q.getQuadrant(QuadName.TOP_RIGHT));
+            } else {
+                return false;
+            }
+        }
+        
+        if (lowerLeft != null) {
+            if (q.getQuadrant(QuadName.BOTTOM_LEFT) != null) {
+                return lowerLeft.equals(q.getQuadrant(QuadName.BOTTOM_LEFT));
+            } else {
+                return false;
+            }
+        }
+        
+        if (lowerRight != null) {
+            if (q.getQuadrant(QuadName.BOTTOM_RIGHT) != null) {
+                return lowerRight.equals(q.getQuadrant(QuadName.BOTTOM_RIGHT));
+            } else {
+                return false;
+            }
+        }
+        
+        return true;
+        
     }
 }
