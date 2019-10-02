@@ -49,7 +49,10 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
         
         if (image.length == 1) {
             return new QuadTreeNodeImpl(image[0][0], 1);
-        } else {
+        } else if (image.length == 2) {
+            return getQuadFromArray(image, 0, 0, image.length);
+        }
+        else {
             QuadTreeNodeImpl root = new QuadTreeNodeImpl(image.length);
             root.setQuad(getQuadFromArray(image, 0, 0, image.length / 2), QuadName.TOP_LEFT);
             root.setQuad(getQuadFromArray(image, 0, image.length / 2, image.length / 2), QuadName.TOP_RIGHT);
@@ -117,7 +120,7 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
             root.setQuad(new QuadTreeNodeImpl(image[x + 1][y], 1), QuadName.BOTTOM_LEFT);
             root.setQuad(new QuadTreeNodeImpl(image[x][y + 1], 1), QuadName.TOP_RIGHT);
             root.setQuad(new QuadTreeNodeImpl(image[x + 1][y + 1], 1), QuadName.BOTTOM_RIGHT);
-            System.out.println("merge" + root.getQuadrant(QuadName.TOP_LEFT).getColor(0, 0));
+            //System.out.println("merge" + root.getQuadrant(QuadName.TOP_LEFT).getColor(0, 0));
             return root.mergeLeaf();
                     
         } else {
@@ -169,7 +172,6 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
                 rgb == getQuadrant(QuadName.BOTTOM_RIGHT).getColor(0, 0);
     }
 
-
     @Override
     public int getColor(int x, int y) {
         if (x < 0 || y < 0 || x > dimension || y > dimension) {
@@ -209,7 +211,8 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
         }
     }
     /**
-     * Converts y coordinate to a corresponding y coordinate relative to the given quadrant
+     * Converts y coordinate to a corresponding y coordinate relative to the top left position of 
+     * given quadrant
      * 
      * @param y original y (col) value to be converted
      * @param quadrant new quadrant
@@ -226,7 +229,8 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
     }
     
     /**
-     * Converts x coordinate to a corresponding x relative to given quadrant
+     * Converts x coordinate to a corresponding x relative to top left position of
+     *  given quadrant
      * 
      * @param x original x (row) value
      * @param quadrant new quadrant
@@ -268,11 +272,14 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
         int num = 1;
         if (upperLeft != null) {
             num += upperLeft.getSize();
-        } else if (upperRight != null) {
+        } 
+        if (upperRight != null) {
             num += upperRight.getSize();
-        } else if (lowerLeft != null) {
+        } 
+        if (lowerLeft != null) {
             num += lowerLeft.getSize();
-        } else if (lowerRight != null) {
+        }
+        if (lowerRight != null) {
             num += lowerRight.getSize();
         }
         return num;
@@ -285,12 +292,45 @@ public class QuadTreeNodeImpl implements QuadTreeNode {
 
     @Override
     public int[][] decompress() {
-        throw new UnsupportedOperationException("TODO: implement");
+        int[][] decompressed = new int[getDimension()][getDimension()];
+        if (isLeaf()) {
+            System.out.println("leaf");
+            for (int i = 0; i < getDimension(); i++) {
+                for (int j = 0; j < getDimension(); j++) {
+                    decompressed[i][j] = this.getColor(0, 0);
+                }
+            }
+            return decompressed;
+        } else {
+            decompressed = getArrayFromTree(decompressed, 0, 0, getDimension() / 2, getQuadrant(QuadName.TOP_LEFT));
+            decompressed = getArrayFromTree(decompressed, 0, getDimension() / 2, getDimension() / 2, getQuadrant(QuadName.TOP_RIGHT));
+            decompressed = getArrayFromTree(decompressed, getDimension() / 2, 0, getDimension() / 2, getQuadrant(QuadName.BOTTOM_LEFT));
+            decompressed = getArrayFromTree(decompressed, getDimension() / 2, getDimension() / 2, getDimension() / 2, getQuadrant(QuadName.BOTTOM_RIGHT));
+            return decompressed;
+        }
+    }
+    
+    public int[][] getArrayFromTree(int[][] decompressed, int x, int y, int side, QuadTreeNode root) {
+        if (root.isLeaf()) {
+            //System.out.println("help leaf");
+            for (int i = x; i < x + side; i++) {
+                for (int j = y; j < y + side; j++) {
+                    decompressed[i][j] = root.getColor(0, 0);
+                    System.out.println(i + ","+ j + " "+ root.getColor(0, 0));
+                }
+            }
+        } else {
+            decompressed = getArrayFromTree(decompressed, x, y, side / 2, root.getQuadrant(QuadName.TOP_LEFT)); //Top left
+            decompressed = getArrayFromTree(decompressed, x, y + side / 2, side / 2, root.getQuadrant(QuadName.TOP_RIGHT)); //top right
+            decompressed = getArrayFromTree(decompressed, x + side / 2, y, side / 2, root.getQuadrant(QuadName.BOTTOM_LEFT)); //bottom left
+            decompressed = getArrayFromTree(decompressed, x + side / 2, y + side / 2, side / 2, root.getQuadrant(QuadName.BOTTOM_RIGHT)); //bottom right
+        }
+        return decompressed;
     }
 
     @Override
     public double getCompressionRatio() {
-        throw new UnsupportedOperationException("TODO: implement");
+        return (double) getSize() / (double) (getDimension() * getDimension());
     }
     
     /**
