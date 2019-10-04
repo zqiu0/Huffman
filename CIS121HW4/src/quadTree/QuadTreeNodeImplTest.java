@@ -8,6 +8,8 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
+import quadTree.QuadTreeNode.QuadName;
+
 public class QuadTreeNodeImplTest {
     private int[][] fourByFour;
     private QuadTreeNode lengthFour;
@@ -21,21 +23,21 @@ public class QuadTreeNodeImplTest {
             {1, 0, 0 ,0},
         };
         
-        QuadTreeNode uL = new QuadTreeNodeImpl(2);
+        QuadTreeNodeImpl uL = new QuadTreeNodeImpl(2);
         ((QuadTreeNodeImpl) uL).setQuad(new QuadTreeNodeImpl(0, 1), QuadTreeNode.QuadName.TOP_LEFT);
         ((QuadTreeNodeImpl) uL).setQuad(new QuadTreeNodeImpl(1, 1), QuadTreeNode.QuadName.TOP_RIGHT);
         ((QuadTreeNodeImpl) uL).setQuad(new QuadTreeNodeImpl(1, 1), QuadTreeNode.QuadName.BOTTOM_LEFT);
         ((QuadTreeNodeImpl) uL).setQuad(new QuadTreeNodeImpl(0, 1), QuadTreeNode.QuadName.BOTTOM_RIGHT);
         
-        QuadTreeNode bL = new QuadTreeNodeImpl(2);
+        QuadTreeNodeImpl bL = new QuadTreeNodeImpl(2);
         ((QuadTreeNodeImpl) bL).setQuad(new QuadTreeNodeImpl(0, 1), QuadTreeNode.QuadName.TOP_LEFT);
         ((QuadTreeNodeImpl) bL).setQuad(new QuadTreeNodeImpl(0, 1), QuadTreeNode.QuadName.TOP_RIGHT);
         ((QuadTreeNodeImpl) bL).setQuad(new QuadTreeNodeImpl(1, 1), QuadTreeNode.QuadName.BOTTOM_LEFT);
         ((QuadTreeNodeImpl) bL).setQuad(new QuadTreeNodeImpl(0, 1), QuadTreeNode.QuadName.BOTTOM_RIGHT);
         
-        QuadTreeNode uR = new QuadTreeNodeImpl(0, 2);
+        QuadTreeNodeImpl uR = new QuadTreeNodeImpl(0, 2);
         
-        QuadTreeNode bR = new QuadTreeNodeImpl(0, 2);
+        QuadTreeNodeImpl bR = new QuadTreeNodeImpl(0, 2);
         
         lengthFour = new QuadTreeNodeImpl(4);
         ((QuadTreeNodeImpl) lengthFour).setQuad(uL, QuadTreeNode.QuadName.TOP_LEFT);
@@ -122,8 +124,42 @@ public class QuadTreeNodeImplTest {
     @Test
     public void testSetQuad() {
         QuadTreeNode root = new QuadTreeNodeImpl(2);
+        assertNull(root.getQuadrant(QuadTreeNode.QuadName.BOTTOM_LEFT));
         ((QuadTreeNodeImpl) root).setQuad(new QuadTreeNodeImpl(1, 1), QuadTreeNode.QuadName.BOTTOM_LEFT);
+        assertFalse(root.getQuadrant(QuadTreeNode.QuadName.BOTTOM_LEFT) == null);
         assertEquals(1, ((QuadTreeNodeImpl) root.getQuadrant(QuadTreeNode.QuadName.BOTTOM_LEFT)).getLeafColor());
+    }
+    
+    @Test
+    public void testSetQuadToTree() {
+        int[][] arr = new int[][]{
+            {2, 1},
+            {1, 2}, 
+        };
+        QuadTreeNode tree = QuadTreeNodeImpl.buildFromIntArray(arr);
+        //System.out.println(tree.getQuadrant(QuadTreeNode.QuadName.TOP_LEFT) == null);
+        ((QuadTreeNodeImpl) tree).setQuad(new QuadTreeNodeImpl(3, 1), QuadTreeNode.QuadName.TOP_LEFT);
+        assertEquals(3, tree.getColor(0, 0));
+    }
+    
+    @Test
+    public void testSetQuadToLeaf() {
+        QuadTreeNode leaf = new QuadTreeNodeImpl(1, 2);
+        assertNull(leaf.getQuadrant(QuadTreeNode.QuadName.TOP_LEFT));
+        ((QuadTreeNodeImpl) leaf).setQuad(new QuadTreeNodeImpl(3, 1), QuadTreeNode.QuadName.TOP_LEFT);
+        assertFalse(leaf.getQuadrant(QuadName.TOP_LEFT) == null);
+    }
+    
+    /** getQuadrant test */
+    @Test
+    public void getQuadrant2By2() {
+        int[][] image = new int[][]{
+            {0, 1},
+            {1, 0}, 
+        };
+        QuadTreeNode tree = QuadTreeNodeImpl.buildFromIntArray(image);
+        QuadTreeNode tL = tree.getQuadrant(QuadTreeNode.QuadName.TOP_LEFT);
+        assertTrue(tL.equals(new QuadTreeNodeImpl(0, 1)));
     }
     
     /** findQuadrant test */
@@ -166,25 +202,34 @@ public class QuadTreeNodeImplTest {
     
     @Test
     public void testGetColor4By4() {
-        assertEquals(1, lengthFour.getColor(1, 0));
+        assertEquals(fourByFour[0][1], lengthFour.getColor(1, 0));
     }
     
     @Test
     public void testGetColor4By4UR() {
-        assertEquals(0, lengthFour.getColor(1, 2));
+        assertEquals(fourByFour[2][1], lengthFour.getColor(1, 2));
     }
     
-    /** convertX and convertY test */
     @Test
-    public void testConvertX() {
-        QuadTreeNode q = new QuadTreeNodeImpl(fourByFour.length);
-        assertEquals(1, ((QuadTreeNodeImpl) q).convertX(3, QuadTreeNode.QuadName.BOTTOM_LEFT));
+    public void testGetColor4By4Edge() {
+        assertEquals(fourByFour[2][3], lengthFour.getColor(3, 2));
     }
     
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetColor4By4OoutOfBound() {
+        lengthFour.getColor(4, 3);
+    }
+    /** convertX and convertY test */
     @Test
     public void testConvertY() {
         QuadTreeNode q = new QuadTreeNodeImpl(fourByFour.length);
-        assertEquals(0, ((QuadTreeNodeImpl) q).convertY(2, QuadTreeNode.QuadName.TOP_RIGHT));
+        assertEquals(1, ((QuadTreeNodeImpl) q).convertY(3, QuadTreeNode.QuadName.BOTTOM_LEFT));
+    }
+    
+    @Test
+    public void testConvertX() {
+        QuadTreeNode q = new QuadTreeNodeImpl(fourByFour.length);
+        assertEquals(0, ((QuadTreeNodeImpl) q).convertX(2, QuadTreeNode.QuadName.TOP_RIGHT));
     }
     
     /** getSize test */
@@ -295,14 +340,22 @@ public class QuadTreeNodeImplTest {
             {1, 0}
         };
         QuadTreeNode tree = QuadTreeNodeImpl.buildFromIntArray(image);
-        System.out.println(tree.getSize());
         
         QuadTreeNode expected = new QuadTreeNodeImpl(image.length);
         ((QuadTreeNodeImpl) expected).setQuad(new QuadTreeNodeImpl(0, 1), QuadTreeNode.QuadName.TOP_LEFT);
         ((QuadTreeNodeImpl) expected).setQuad(new QuadTreeNodeImpl(1, 1), QuadTreeNode.QuadName.TOP_RIGHT);
         ((QuadTreeNodeImpl) expected).setQuad(new QuadTreeNodeImpl(1, 1), QuadTreeNode.QuadName.BOTTOM_LEFT);
         ((QuadTreeNodeImpl) expected).setQuad(new QuadTreeNodeImpl(0, 1), QuadTreeNode.QuadName.BOTTOM_RIGHT);
-        System.out.println(expected.getSize());
+        assertTrue(tree.equals(expected));
+    }
+    
+    @Test
+    public void testOneByOne() {
+        int[][] image = new int[][]{
+            {0}
+        };
+        QuadTreeNode tree = QuadTreeNodeImpl.buildFromIntArray(image);
+        QuadTreeNode expected = new QuadTreeNodeImpl(0, 1);
         assertTrue(tree.equals(expected));
     }
     
@@ -319,6 +372,21 @@ public class QuadTreeNodeImplTest {
         QuadTreeNode q1 = new QuadTreeNodeImpl(0, 1);
         QuadTreeNode q2 = null;
         assertFalse(q1.equals(q2));
+    }
+    
+    @Test
+    public void testUnequal2By2() {
+        int[][] image1 = new int[][]{
+            {0, 1},
+            {1, 0}
+        };
+        int[][] image2 = new int[][]{
+            {0, 1},
+            {1, 1}
+        };
+        QuadTreeNode tree1 = QuadTreeNodeImpl.buildFromIntArray(image1);
+        QuadTreeNode tree2 = QuadTreeNodeImpl.buildFromIntArray(image2);
+        assertFalse(tree1.equals(tree2));
     }
     
     /** getCompressionRatio test */
@@ -389,5 +457,147 @@ public class QuadTreeNodeImplTest {
         QuadTreeNode tree = QuadTreeNodeImpl.buildFromIntArray(image);
         assertArrayEquals(image, tree.decompress());
     }
+    
+    @Test
+    public void testDecompressGetColor() {
+        int[][] image = new int[][]{
+            {2, 1, 3, 4},
+            {2, 3, 1, 4},
+            {1, 2, 3, 4},
+            {4, 3, 2, 1}
+        };
+        QuadTreeNode tree = QuadTreeNodeImpl.buildFromIntArray(image);
+        int[][] decompressed = tree.decompress();
+        assertEquals(decompressed[1][2], tree.getColor(2, 1));
+    }
+    
+    /** setColor test */
+    @Test
+    public void testSetColor2By2Leaf() {
+        int[][] image = new int[][]{
+            {2, 2},
+            {2, 2}
+        };
+        QuadTreeNode tree = QuadTreeNodeImpl.buildFromIntArray(image);
+        tree.setColor(1, 0, 5);
+        assertEquals(5, tree.getColor(1, 0));
+        
+        int[][] changeColor = new int[][]{
+            {2, 5},
+            {2, 2}
+        };
+        QuadTreeNode changedTree = QuadTreeNodeImpl.buildFromIntArray(changeColor);
+        assertTrue(tree.equals(changedTree));
+    }
+    
+    @Test
+    public void testSetColor2By2Different() {
+        int[][] image = new int[][]{
+            {1, 2},
+            {2, 1}
+        };
+        QuadTreeNode tree = QuadTreeNodeImpl.buildFromIntArray(image);
+        tree.setColor(1, 1, 3);
+        assertEquals(3, tree.getColor(1, 1));
+        
+        int[][] changeColor = new int[][]{
+            {1, 2},
+            {2, 3}
+        };
+        QuadTreeNode changedTree = QuadTreeNodeImpl.buildFromIntArray(changeColor);
+        assertTrue(tree.equals(changedTree));
+    }
+    
+    @Test
+    public void testSetColor4By4Leaf() {
+        int[][] image = new int[4][4];
+        QuadTreeNode tree = QuadTreeNodeImpl.buildFromIntArray(image);
+        tree.setColor(2, 0, 5);
+        assertEquals(5, tree.getColor(2, 0));
+        
+        int[][] changeColor = new int[][]{
+            {0, 0, 5, 0},
+            {0, 0, 0, 0},
+            {0, 0, 0, 0},
+            {0, 0, 0, 0}
+        };
+        QuadTreeNode changedTree = QuadTreeNodeImpl.buildFromIntArray(changeColor);
+        assertTrue(tree.equals(changedTree));
+    }
+    
+    @Test
+    public void testSetColor4By4NoChange() {
+        int[][] image = new int[][]{
+            {2, 1, 3, 4},
+            {2, 3, 1, 4},
+            {1, 2, 3, 4},
+            {4, 3, 2, 1}
+        };
+        QuadTreeNode tree = QuadTreeNodeImpl.buildFromIntArray(image);
+        tree.setColor(1, 2, 5);
+        //assertEquals(5, tree.getColor(0, 2));
+        
+        int[][] changeColor = new int[][]{
+            {2, 1, 3, 4},
+            {2, 3, 1, 4},
+            {1, 5, 3, 4},
+            {4, 3, 2, 1}
+        };
+        QuadTreeNode changedTree = QuadTreeNodeImpl.buildFromIntArray(changeColor);
+        assertEquals(5, changedTree.getColor(1, 2));
+        assertTrue(tree.equals(changedTree));
+    }
+    
+    @Test
+    public void testSetColorProduceLeave2By2() {
+        int[][] image = new int[][]{
+            {2, 2},
+            {2, 1}
+        };
+        QuadTreeNode tree = QuadTreeNodeImpl.buildFromIntArray(image);
+        tree.setColor(1, 1, 2);
+        System.out.println(tree.getSize());
+        assertEquals(2, tree.getColor(1, 1));
+        assertEquals(2, tree.getColor(0, 0));
+        assertEquals(2, tree.getColor(1, 0));
+        assertEquals(2, tree.getColor(0, 1));
+        assertTrue(tree.isLeaf());
+        
+        QuadTreeNode changedTree = new QuadTreeNodeImpl(2, 2);
+        //assertTrue(tree.equals(changedTree));
+    }
+    
+    /** setLeaves test */
+    @Test
+    public void testSetLeaves2By2() {
+        int[][] image = new int[][]{
+            {2, 2},
+            {2, 2}
+        };
+        QuadTreeNode tree = QuadTreeNodeImpl.buildFromIntArray(image);
+        ((QuadTreeNodeImpl) tree).setLeaves(QuadTreeNode.QuadName.TOP_RIGHT, 3, 1, (QuadTreeNodeImpl) tree);
+        assertEquals(3, tree.getQuadrant(QuadTreeNode.QuadName.TOP_LEFT).getColor(0, 0));
+        ((QuadTreeNodeImpl) tree).setQuad(new QuadTreeNodeImpl(2, 1), QuadTreeNode.QuadName.TOP_RIGHT);
+        
+        int[][] newTree = new int[][]{
+            {3, 2},
+            {3, 3}
+        };
+        QuadTreeNode changedTree = QuadTreeNodeImpl.buildFromIntArray(newTree);
+        assertTrue(tree.equals(changedTree));
+    }
+    
+    /** mergeAtRoot test */
+    @Test
+    public void testMergeAtRoot2By2() {
+        QuadTreeNode tree = new QuadTreeNodeImpl(2);
+        ((QuadTreeNodeImpl) tree).setQuad(new QuadTreeNodeImpl(2, 1), QuadTreeNode.QuadName.TOP_LEFT);
+        ((QuadTreeNodeImpl) tree).setQuad(new QuadTreeNodeImpl(2, 1), QuadTreeNode.QuadName.TOP_RIGHT);
+        ((QuadTreeNodeImpl) tree).setQuad(new QuadTreeNodeImpl(2, 1), QuadTreeNode.QuadName.BOTTOM_LEFT);
+        ((QuadTreeNodeImpl) tree).setQuad(new QuadTreeNodeImpl(2, 1), QuadTreeNode.QuadName.BOTTOM_RIGHT);
+        ((QuadTreeNodeImpl) tree).mergeAtRoot();
+        assertFalse(tree.isLeaf());
+    }
+    
 }
 
